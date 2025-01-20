@@ -34,6 +34,7 @@ class ScoreboardPlugin implements PluginInterface
     private string $apiKey;
     private string $matchKey;
     private string $serviceStatus;
+    private string $configfile = "/etc/scoreboard/match.json";
 
     public function __construct(string $pluginPath, string $pluginName)
     {
@@ -284,7 +285,7 @@ class ScoreboardPlugin implements PluginInterface
             $data->apikey = $this->apiKey;
             $data->spieluuid = $this->matchKey;
             $str = json_encode($data);
-            file_put_contents("/var/www/html/config/match.json", $str);
+            file_put_contents($this->configfile, $str);
     }
 
     // Static method to load persisted data
