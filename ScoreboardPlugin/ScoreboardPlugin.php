@@ -33,6 +33,10 @@ class ScoreboardPlugin implements PluginInterface
     private string $templateMain;
     private string $apiKey;
     private string $matchKey;
+
+    private int $noswitch;
+    private int $switchedsetup;
+    private int $noswitchedback;
     private string $serviceStatus;
     private string $configfile = "/etc/scoreboard/match.json";
 
@@ -44,11 +48,17 @@ class ScoreboardPlugin implements PluginInterface
         $this->serviceStatus = 'up';
         $this->apiKey = '';
         $this->matchKey = '';
+        $this->noswitch = 0;
+        $this->switchedsetup = 0;
+        $this->noswitchedback = 0;
 
         if ($loaded = self::loadData()) {
             $this->apiKey = $loaded->getApiKey();
             $this->matchKey = $loaded->getMatchKey();
             $this->serviceStatus = $loaded->getServiceStatus();
+            $this->noswitch = $loaded->getNoswitch();
+            $this->switchedsetup = $loaded->getSwitchedsetup();
+            $this->noswitchedback = $loaded->getNoswitchedback();
         }
     }
 
@@ -103,6 +113,10 @@ class ScoreboardPlugin implements PluginInterface
                         // Validate user data
                         $apiKey = trim($_POST['txtapikey']);
                         $matchKey = trim($_POST['txtmatchkey']);
+                        $noswitch = (int)trim($_POST['noswitch']);
+                        $switchedsetup = (int)trim($_POST['switchedsetup']);
+                        $noswitchedback = (int)trim($_POST['noswitchedback']);
+
                         $error = false;
                         if (strlen($apiKey) == 0) {
                             $status->addMessage('Please enter a valid API key', 'warning');
@@ -113,7 +127,7 @@ class ScoreboardPlugin implements PluginInterface
                             $error = true;
                         }
                         if (!$error) {
-                            $return = $this->saveSampleSettings($status, $apiKey, $matchKey);
+                            $return = $this->saveSampleSettings($status, $apiKey, $matchKey, $noswitch, $switchedsetup, $noswitchedback);
                             $status->addMessage('Restarting scoreboard.service', 'info');
                             exec('sudo /bin/systemctl stop scoreboard.service', $return);
                             foreach ($return as $line) {
@@ -171,6 +185,9 @@ class ScoreboardPlugin implements PluginInterface
             // update template data from property after processing page actions
             $__template_data['apiKey'] = $this->getApiKey();
             $__template_data['matchKey'] = $this->getMatchKey();
+            $__template_data['noswitch'] = $this->getNoswitch();
+            $__template_data['switchedsetup'] = $this->getSwitchedsetup();
+            $__template_data['noswitchedback'] = $this->getNoswitchedback();
 
             echo $this->renderTemplate($this->templateMain, compact(
                 "status",
@@ -208,11 +225,14 @@ class ScoreboardPlugin implements PluginInterface
      * @param object status
      * @param string $apiKey
      */
-    public function saveSampleSettings($status, $apiKey, $matchKey)
+    public function saveSampleSettings($status, $apiKey, $matchKey, $noswitch, $switchedsetup, $noswitchedback)
     {
         $status->addMessage('Saving Scoreboard API key and Match UUID', 'info');
         $this->setApiKey($apiKey);
         $this->setMatchKey($matchKey);
+        $this->setNoswitch($noswitch);
+        $this->setSwitchedsetup($switchedsetup);
+        $this->setNoswitchedback($noswitchedback);
         return $status;
     }
 
@@ -243,6 +263,39 @@ class ScoreboardPlugin implements PluginInterface
     public function setMatchKey($matchKey)
     {
         $this->matchKey = $matchKey;
+        $this->persistData();
+    }
+
+    public function getNoswitch(): int
+    {
+        return $this->noswitch;
+    }
+
+    public function setNoswitch(int $noswitch): void
+    {
+        $this->noswitch = $noswitch;
+        $this->persistData();
+    }
+
+    public function getSwitchedsetup(): int
+    {
+        return $this->switchedsetup;
+    }
+
+    public function setSwitchedsetup(int $switchedsetup): void
+    {
+        $this->switchedsetup = $switchedsetup;
+        $this->persistData();
+    }
+
+    public function getNoswitchedback(): int
+    {
+        return $this->noswitchedback;
+    }
+
+    public function setNoswitchedback(int $noswitchedback): void
+    {
+        $this->noswitchedback = $noswitchedback;
         $this->persistData();
     }
 
@@ -281,11 +334,14 @@ class ScoreboardPlugin implements PluginInterface
 
     }
     public function persistExternalData(){
-            $data=new \stdClass;
-            $data->apikey = $this->apiKey;
-            $data->spieluuid = $this->matchKey;
-            $str = json_encode($data);
-            file_put_contents($this->configfile, $str);
+        $data=new \stdClass;
+        $data->apikey = $this->apiKey;
+        $data->spieluuid = $this->matchKey;
+        $data->noswitch = $this->noswitch;
+        $data->switchedsetup = $this->switchedsetup;
+        $data->noswitchedback = $this->noswitchedback;
+        $str = json_encode($data);
+        file_put_contents($this->configfile, $str);
     }
 
     // Static method to load persisted data
