@@ -68,7 +68,7 @@ class ScoreboardPlugin implements PluginInterface
                     }
             }
         }
-        catch (\Exception $e) {
+        catch (\Error $e) {
 
         }
     }
