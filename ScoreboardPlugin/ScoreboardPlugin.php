@@ -55,14 +55,21 @@ class ScoreboardPlugin implements PluginInterface
         $this->noswitchedback = 0;
         $this->onboot = 0;
 
-        if ($loaded = self::loadData()) {
-            $this->apiKey = $loaded->getApiKey();
-            $this->matchKey = $loaded->getMatchKey();
-            $this->serviceStatus = $loaded->getServiceStatus();
-            $this->noswitch = $loaded->getNoswitch();
-            $this->switchedsetup = $loaded->getSwitchedsetup();
-            $this->noswitchedback = $loaded->getNoswitchedback();
-            $this->onboot = $loaded->getOnboot();
+        try {
+            if ($loaded = self::loadData()) {
+                    $this->apiKey = $loaded->getApiKey();
+                    $this->matchKey = $loaded->getMatchKey();
+                    $this->serviceStatus = $loaded->getServiceStatus();
+                    $this->noswitch = $loaded->getNoswitch();
+                    $this->switchedsetup = $loaded->getSwitchedsetup();
+                    $this->noswitchedback = $loaded->getNoswitchedback();
+                    if ($loaded->getOnboot() == NULL) {
+                        $this->onboot = $loaded->getOnboot();
+                    }
+            }
+        }
+        catch (\Exception $e) {
+
         }
     }
 
