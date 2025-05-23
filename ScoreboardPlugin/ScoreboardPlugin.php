@@ -37,6 +37,8 @@ class ScoreboardPlugin implements PluginInterface
     private int $noswitch;
     private int $switchedsetup;
     private int $noswitchedback;
+
+    private int $onboot;
     private string $serviceStatus;
     private string $configfile = "/etc/scoreboard/match.json";
 
@@ -51,6 +53,7 @@ class ScoreboardPlugin implements PluginInterface
         $this->noswitch = 0;
         $this->switchedsetup = 0;
         $this->noswitchedback = 0;
+        $this->onboot = 0;
 
         if ($loaded = self::loadData()) {
             $this->apiKey = $loaded->getApiKey();
@@ -59,6 +62,7 @@ class ScoreboardPlugin implements PluginInterface
             $this->noswitch = $loaded->getNoswitch();
             $this->switchedsetup = $loaded->getSwitchedsetup();
             $this->noswitchedback = $loaded->getNoswitchedback();
+            $this->onboot = $loaded->getOnboot();
         }
     }
 
@@ -116,6 +120,7 @@ class ScoreboardPlugin implements PluginInterface
                         $noswitch = (int)trim($_POST['noswitch']);
                         $switchedsetup = (int)trim($_POST['switchedsetup']);
                         $noswitchedback = (int)trim($_POST['noswitchedback']);
+                        $onboot = (int)trim($_POST['onboot']);
 
                         $error = false;
                         if (strlen($apiKey) == 0) {
@@ -127,7 +132,7 @@ class ScoreboardPlugin implements PluginInterface
                             $error = true;
                         }
                         if (!$error) {
-                            $return = $this->saveSampleSettings($status, $apiKey, $matchKey, $noswitch, $switchedsetup, $noswitchedback);
+                            $return = $this->saveSampleSettings($status, $apiKey, $matchKey, $noswitch, $switchedsetup, $noswitchedback, $onboot);
                             $status->addMessage('Restarting scoreboard.service', 'info');
                             exec('sudo /bin/systemctl stop scoreboard.service', $return);
                             foreach ($return as $line) {
@@ -136,6 +141,18 @@ class ScoreboardPlugin implements PluginInterface
                             exec('sudo /bin/systemctl start scoreboard.service', $return);
                             foreach ($return as $line) {
                                 $status->addMessage($line, 'info');
+                            }
+                            if ($onboot == 1){
+                                exec('sudo /bin/systemctl enable scoreboard.service', $return);
+                                foreach ($return as $line) {
+                                    $status->addMessage($line, 'info');
+                                }
+                            }
+                            else {
+                                exec('sudo /bin/systemctl disable scoreboard.service', $return);
+                                foreach ($return as $line) {
+                                    $status->addMessage($line, 'info');
+                                }
                             }
                         }
                     }
@@ -188,6 +205,7 @@ class ScoreboardPlugin implements PluginInterface
             $__template_data['noswitch'] = $this->getNoswitch();
             $__template_data['switchedsetup'] = $this->getSwitchedsetup();
             $__template_data['noswitchedback'] = $this->getNoswitchedback();
+            $__template_data['onboot'] = $this->getOnboot();
 
             echo $this->renderTemplate($this->templateMain, compact(
                 "status",
@@ -225,7 +243,7 @@ class ScoreboardPlugin implements PluginInterface
      * @param object status
      * @param string $apiKey
      */
-    public function saveSampleSettings($status, $apiKey, $matchKey, $noswitch, $switchedsetup, $noswitchedback)
+    public function saveSampleSettings($status, $apiKey, $matchKey, $noswitch, $switchedsetup, $noswitchedback, $onboot)
     {
         $status->addMessage('Saving Scoreboard API key and Match UUID', 'info');
         $this->setApiKey($apiKey);
@@ -233,7 +251,19 @@ class ScoreboardPlugin implements PluginInterface
         $this->setNoswitch($noswitch);
         $this->setSwitchedsetup($switchedsetup);
         $this->setNoswitchedback($noswitchedback);
+        $this->setOnboot($onboot);
         return $status;
+    }
+
+    public function getOnboot(): int
+    {
+        return $this->onboot;
+    }
+
+    public function setOnboot(int $onboot): void
+    {
+        $this->onboot = $onboot;
+        $this->persistData();
     }
 
     // Getter for apiKey

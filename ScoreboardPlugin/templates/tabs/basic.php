@@ -48,6 +48,13 @@
                             <label class="form-check-label" for="noswitchedback"><?php echo _("keine gedrehte Rückseite") ?></label>
                         </div>
                     </div>
+                    <div class="input-group">
+                        <div class="form-check form-switch">
+                            <?php $checked = $__template_data['onboot'] == 1 ? 'checked="checked"' : '' ?>
+                            <input class="form-check-input" id="onboot" name="onboot" type="checkbox" value="1" <?php echo $checked ?> />
+                            <label class="form-check-label" for="onboot"><?php echo _("Autostart") ?></label>
+                        </div>
+                    </div>
                 </div>
             </div>
 

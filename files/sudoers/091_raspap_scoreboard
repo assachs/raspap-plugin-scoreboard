@@ -1,3 +1,5 @@
 www-data ALL=(ALL) NOPASSWD:/bin/systemctl start scoreboard.service
 www-data ALL=(ALL) NOPASSWD:/bin/systemctl stop scoreboard.service
 www-data ALL=(ALL) NOPASSWD:/bin/systemctl status scoreboard.service
+www-data ALL=(ALL) NOPASSWD:/bin/systemctl enable scoreboard.service
+www-data ALL=(ALL) NOPASSWD:/bin/systemctl disable scoreboard.service
