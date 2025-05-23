@@ -63,9 +63,7 @@ class ScoreboardPlugin implements PluginInterface
                     $this->noswitch = $loaded->getNoswitch();
                     $this->switchedsetup = $loaded->getSwitchedsetup();
                     $this->noswitchedback = $loaded->getNoswitchedback();
-                    if ($loaded->getOnboot() == NULL) {
-                        $this->onboot = $loaded->getOnboot();
-                    }
+                    $this->onboot = $loaded->getOnboot();
             }
         }
         catch (\Error $e) {
